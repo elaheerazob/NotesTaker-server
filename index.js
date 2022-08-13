@@ -3,20 +3,80 @@ const cors = require('cors');
 const port = process.env.PORT || 5000;
 const app =express()
 
+//middle ware
+app.use(cors());
+app.use(express.json());
+
 
 //wtLxw8UCavgOodgR
 
 
 
 
-const { MongoClient, ServerApiVersion } = require('mongodb');
+const { MongoClient, ServerApiVersion,ObjectId } = require('mongodb');
 const uri = "mongodb+srv://ridwan:wtLxw8UCavgOodgR@cluster0.tdnhswv.mongodb.net/?retryWrites=true&w=majority";
 const client = new MongoClient(uri, { useNewUrlParser: true, useUnifiedTopology: true, serverApi: ServerApiVersion.v1 });
 
 
 async function run() {
     try{
-        const collection = client.db("notesTaker").collection("notes");
+        const notesCollection = client.db("notesTaker").collection("notes");
+
+        //get api to read all nodes
+        //http://localhost:5000/notes
+        app.get('/notes',async(req,res)=>{
+            // const q =req.query;
+            const cursor = notesCollection.find({});
+            const result =await cursor.toArray();
+            res.send(result)
+        })
+
+        //create nodesTaker
+        //http://localhost:5000/note
+       /*  {
+            "name": "Elahee",
+            "age": 25,
+            "address": "Rangpur Bangladesh"
+        } */
+
+        app.post('/note',async (req,res)=>{
+            const data = req.body;
+
+            const result =await notesCollection.insertOne(data);
+
+            console.log(data);
+            res.send(result)
+        })
+
+        // update nodesTaker
+        //http://localhost:5000/note/62f667935ec60a9c7c0699b1
+        app.put('/note/:id',async (req,res)=>{
+            const id =req.params.id;
+            const data = req.body;
+            console.log(id);
+
+            const filter = {_id: ObjectId(id)};
+            const options = { upsert: true };
+            const updateDoc = {
+                $set: {
+                    name: data.name,
+                    age: data.age,
+                    address: data.address,
+                },
+              };
+              const result = await notesCollection.updateOne(filter, updateDoc, options);
+              res.send(result)
+        })
+
+        //delete NodesTaker
+        app.delete('/note/:id',async (req,res) =>{
+            const id =req.params.id;
+            const filter ={_id: ObjectId(id)};
+            const result = await notesCollection.deleteOne(filter);
+            res.send(result);
+        })
+
+
         console.log('Connected DB');
     }
     finally{
