@@ -72,14 +72,13 @@ async function run() {
     app.put("/note/:id", async (req, res) => {
       const id = req.params.id;
       const data = req.body;
-      console.log(id);
+      console.log(id,data);
 
       const filter = { _id: ObjectId(id) };
       const options = { upsert: true };
       const updateDoc = {
         $set: {
           name: data.name,
-          age: data.age,
           address: data.address,
         },
       };
